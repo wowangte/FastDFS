@@ -22,7 +22,12 @@
   tar -zxf libfastcommon*.tar.gz
   cd libfastcommon-1.0.7
   ./make.sh
+    (./make.sh报错：yum -y install zlib zlib-devel pcre pcre-devel openssl openssl-devel libevent libevent-devel perl unzip net-tools)
   ./make.sh install
+    （mkdir -p /usr/lib64
+      install -m 755 libfastcommon.so /usr/lib64
+      mkdir -p /usr/include/fastcommon
+      install -m 644 common_define.h hash.h * /usr/include/fastcommon）
   cd /usr/lib64/
   cp libfastcommon.so /usr/lib/
   find /usr/lib/ -name libfastcommon.so
@@ -75,7 +80,52 @@
   vim /root/hi.html
   编写：hello,fastdfs!
   /usr/bin/fdfs_test /etc/fdfs/client.conf upload /root/hi.html
-  
+五、将防火墙换成iptables
+    systemctl stop firewalld
+    systemctl mask firewalld
+    yum install iptables-services
+    systemctl enable iptables
+    systemctl start iptables
+    service iptables save
+六、开放端口
+    vim /etc/sysconfig/iptables
+    修改：新增要开发的端口
+    service iptables restart
+七、安装nginx和nginx的fastdfs插件
+    （1）配置插件
+    cd fastdfs-nginx-module
+    cd src
+    vim config
+    shift: --> %s/local\///g
+    推出：wq
+    cp mod_fastdfs.conf /etc/fdfs/
+    vim /etc/fdfs/mod_fastdfs.conf
+    修改：tracker_server=192.168.*.***:22122
+          url_have_group_name = true
+          store_path0=/usr/local/fastdfs/fastdfs-5.05/storage_data
+    推出：wq   
+    （2）安装插件
+    cd /usr/local/fastdfs/
+    cd nginx-1.8.1
+    ./configure --add-module=/usr/local/fastdfs/fastdfs-nginx-module/src
+    （3）安装nginx
+    make
+    make install
+    （4）配置nginx
+    cd /usr/local/nginx/
+    cd conf/
+    vim nginx.conf
+    修改：在server {}中添加下面内容
+        location /group1/M00/ {
+            ngx_fastdfs_module;
+        }
+    推出：wq
+    （5）启动nginx
+    cd /usr/local/nginx/sbin
+    ./ningx
+    ps -aux | grep nginx
+    
+    
   
   
   
